@@ -25,9 +25,16 @@ parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true',
                     help='resume from checkpoint')
+parser.add_argument("--gpus", default="0", type=str, required=False, help="GPUs id, separated by comma withougt space, for example: 0,1,2")
 args = parser.parse_args()
 
+
+# Setting up gpu environment
+gpus = args.gpus.split(",")
+os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(gpus)
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+
 best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
