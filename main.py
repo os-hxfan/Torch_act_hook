@@ -14,6 +14,12 @@ import argparse
 from models import *
 from utils import progress_bar
 
+import Stat_Collector
+import logging
+
+from tensorboardX import SummaryWriter
+
+writer = SummaryWriter("./tensorboard/statistics")
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
@@ -55,7 +61,7 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer',
 # Model
 print('==> Building model..')
 # net = VGG('VGG19')
-# net = ResNet18()
+net = ResNet18()
 # net = PreActResNet18()
 # net = GoogLeNet()
 # net = DenseNet121()
@@ -67,7 +73,7 @@ print('==> Building model..')
 # net = SENet18()
 # net = ShuffleNetV2(1)
 # net = EfficientNetB0()
-net = RegNetX_200MF()
+#net = RegNetX_200MF()
 net = net.to(device)
 if device == 'cuda':
     net = torch.nn.DataParallel(net)
@@ -149,3 +155,23 @@ def test(epoch):
 for epoch in range(start_epoch, start_epoch+200):
     train(epoch)
     test(epoch)
+
+    logging.info("Collecting the statistics by running test set")
+    target_module_list = [nn.BatchNorm2d,nn.Linear] # Insert hook after BN and FC
+    net, intern_outputs = Stat_Collector.insert_hook(net, target_module_list)
+
+    with torch.no_grad():
+        for batch_idx, (inputs, targets) in enumerate(testloader):
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = net(inputs)
+            loss = criterion(outputs, targets)
+            _, predicted = outputs.max(1)
+
+    # Drawing the distribution
+    for i, intern_output in enumerate(intern_outputs):
+        print ("No.", i, " ", intern_output.out_features.shape)
+        #ploting the distribution
+        writer.add_histogram("conv%d" % (i), intern_output.out_features.cpu().data.numpy(), bins='auto')
+
+
+
