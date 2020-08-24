@@ -3,3 +3,4 @@ checkpoint/
 data/
 models/__pycache__/
 tensorboard/
+*.txt
