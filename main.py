@@ -30,7 +30,8 @@ parser.add_argument("--gpus", default="0", type=str, required=False, help="GPUs 
 parser.add_argument("--model_name", default="resnet", type=str, required=True, choices=["resnet", "vgg"], help="choose from [resnet, vgg]")
 parser.add_argument("--dataset", default="cifar10", type=str, required=True, choices=["cifar10", "mnist"], help="choose from [cifar10, mnist]")
 parser.add_argument('--num_example', default=10, type=int, help='The number of examples for collecting intermedia results')
-parser.add_argument("--ckpt_dir", default=None, type=str, help="The path to the checkpoint")
+parser.add_argument("--ckpt_dir", default=None, type=str, help="The path to the load checkpoint, start with ./checkpoint")
+parser.add_argument("--save_dir", default=None, type=str, help="The path to the save checkpoint, start with ./checkpoint")
 args = parser.parse_args()
 
 
@@ -204,7 +205,10 @@ def test(epoch):
         }
         if not os.path.isdir('checkpoint'):
             os.mkdir('checkpoint')
-        torch.save(state, './checkpoint/ckpt.pth')
+        if args.save_dir is None:
+            raise NotImplementedError("The specifed optimizer is not supported")
+        else:
+            torch.save(state, args.save_dir)
         best_acc = acc
 
 if not args.resume:
