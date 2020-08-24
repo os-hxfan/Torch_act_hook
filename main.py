@@ -26,6 +26,7 @@ parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true',
                     help='resume from checkpoint')
 parser.add_argument("--gpus", default="0", type=str, required=False, help="GPUs id, separated by comma withougt space, for example: 0,1,2")
+parser.add_argument("--model_name", default="resnet", type=str, required=True, choices=["resnet", "vgg"], help="choose from [resnet, vgg]")
 args = parser.parse_args()
 
 
@@ -68,7 +69,10 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer',
 # Model
 print('==> Building model..')
 # net = VGG('VGG19')
-net = ResNet18()
+if args.model_name == "resnet":
+    net = ResNet18()
+else:
+    net = VGG('VGG19')
 # net = PreActResNet18()
 # net = GoogLeNet()
 # net = DenseNet121()
@@ -82,6 +86,9 @@ net = ResNet18()
 # net = EfficientNetB0()
 #net = RegNetX_200MF()
 net = net.to(device)
+
+print ("The structure of model:", net)
+
 if device == 'cuda':
     net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
@@ -163,22 +170,22 @@ for epoch in range(start_epoch, start_epoch+200):
     train(epoch)
     test(epoch)
 
-    logging.info("Collecting the statistics by running test set")
-    target_module_list = [nn.BatchNorm2d,nn.Linear] # Insert hook after BN and FC
-    net, intern_outputs = Stat_Collector.insert_hook(net, target_module_list)
+logging.info("Collecting the statistics by running test set")
+target_module_list = [nn.BatchNorm2d,nn.Linear] # Insert hook after BN and FC
+net, intern_outputs = Stat_Collector.insert_hook(net, target_module_list)
 
-    with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(testloader):
-            inputs, targets = inputs.to(device), targets.to(device)
-            outputs = net(inputs)
-            loss = criterion(outputs, targets)
-            _, predicted = outputs.max(1)
+with torch.no_grad():
+    for batch_idx, (inputs, targets) in enumerate(testloader):
+        inputs, targets = inputs.to(device), targets.to(device)
+        outputs = net(inputs)
+        loss = criterion(outputs, targets)
+        _, predicted = outputs.max(1)
 
-    # Drawing the distribution
-    for i, intern_output in enumerate(intern_outputs):
-        print ("No.", i, " ", intern_output.out_features.shape)
-        #ploting the distribution
-        writer.add_histogram("conv%d" % (i), intern_output.out_features.cpu().data.numpy(), bins='auto')
+# Drawing the distribution
+for i, intern_output in enumerate(intern_outputs):
+    print ("No.", i, " ", intern_output.out_features.shape)
+    #ploting the distribution
+    writer.add_histogram("conv%d" % (i), intern_output.out_features.cpu().data.numpy(), bins='auto')
 
 
 
