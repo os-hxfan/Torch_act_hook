@@ -18,6 +18,7 @@ import Stat_Collector
 import logging
 
 from tensorboardX import SummaryWriter
+from torch.optim.lr_scheduler import MultiStepLR
 
 writer = SummaryWriter("./tensorboard/statistics")
 
@@ -28,6 +29,8 @@ parser.add_argument('--resume', '-r', action='store_true',
 parser.add_argument("--gpus", default="0", type=str, required=False, help="GPUs id, separated by comma withougt space, for example: 0,1,2")
 parser.add_argument("--model_name", default="resnet", type=str, required=True, choices=["resnet", "vgg"], help="choose from [resnet, vgg]")
 parser.add_argument("--dataset", default="cifar10", type=str, required=True, choices=["cifar10", "mnist"], help="choose from [cifar10, mnist]")
+parser.add_argument('--num_example', default=10, type=int, help='The number of examples for collecting intermedia results')
+parser.add_argument("--ckpt_dir", default=None, type=str, help="The path to the checkpoint")
 args = parser.parse_args()
 
 
@@ -40,6 +43,9 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
+
+train_batch_size = 128
+test_batch_size = 128
 # Data
 print('==> Preparing data..')
 if args.dataset == "cifar10":
@@ -58,12 +64,15 @@ if args.dataset == "cifar10":
     trainset = torchvision.datasets.CIFAR10(
         root='./data', train=True, download=True, transform=transform_train)
     trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=128, shuffle=True, num_workers=2)
+        trainset, batch_size=train_batch_size, shuffle=True, num_workers=2)
 
     testset = torchvision.datasets.CIFAR10(
         root='./data', train=False, download=True, transform=transform_test)
     testloader = torch.utils.data.DataLoader(
-        testset, batch_size=100, shuffle=False, num_workers=2)
+        testset, batch_size=test_batch_size, shuffle=False, num_workers=2)
+
+    stat_loader = torch.utils.data.DataLoader(
+        testset, batch_size=1, shuffle=False, num_workers=2)
 
     classes = ('plane', 'car', 'bird', 'cat', 'deer',
             'dog', 'frog', 'horse', 'ship', 'truck')
@@ -79,9 +88,12 @@ elif args.dataset == "mnist":
     testset = torchvision.datasets.MNIST('/mnist/', train=False, download=True,
                                 transform=data_transform)
     trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=128, shuffle=True, num_workers=2)
+        trainset, batch_size=train_batch_size, shuffle=True, num_workers=2)
     testloader = torch.utils.data.DataLoader(
-        testset, batch_size=100, shuffle=False, num_workers=2)
+        testset, batch_size=test_batch_size, shuffle=False, num_workers=2)
+
+    stat_loader = torch.utils.data.DataLoader(
+        testset, batch_size=1, shuffle=False, num_workers=2)
 else:
     raise NotImplementedError("The specifed dataset is not supported")
 
@@ -116,8 +128,11 @@ if device == 'cuda':
 if args.resume:
     # Load checkpoint.
     print('==> Resuming from checkpoint..')
-    assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-    checkpoint = torch.load('./checkpoint/ckpt.pth')
+    #assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
+    if args.ckpt_dir is None:
+        raise NotImplementedError("The path to the checkpoint is not specifed")
+    else:
+        checkpoint = torch.load(args.ckpt_dir)
     net.load_state_dict(checkpoint['net'])
     best_acc = checkpoint['acc']
     start_epoch = checkpoint['epoch']
@@ -132,6 +147,7 @@ elif args.dataset == "mnist":
 else:
     raise NotImplementedError("The specifed optimizer is not supported")
 
+scheduler = MultiStepLR(optimizer, milestones=[150,250], gamma=0.1)
 
 # Training
 def train(epoch):
@@ -191,21 +207,26 @@ def test(epoch):
         torch.save(state, './checkpoint/ckpt.pth')
         best_acc = acc
 
-
-for epoch in range(start_epoch, start_epoch+200):
-    train(epoch)
-    test(epoch)
+if not args.resume:
+    for epoch in range(start_epoch, start_epoch+350):
+        train(epoch)
+        test(epoch)
+        scheduler.step()
 
 logging.info("Collecting the statistics by running test set")
 target_module_list = [nn.BatchNorm2d,nn.Linear] # Insert hook after BN and FC
 net, intern_outputs = Stat_Collector.insert_hook(net, target_module_list)
 
+cur_example = 0
 with torch.no_grad():
-    for batch_idx, (inputs, targets) in enumerate(testloader):
+    for batch_idx, (inputs, targets) in enumerate(stat_loader):
         inputs, targets = inputs.to(device), targets.to(device)
         outputs = net(inputs)
         loss = criterion(outputs, targets)
         _, predicted = outputs.max(1)
+        cur_example += 1
+        if cur_example > args.num_example:
+            break
 
 # Drawing the distribution
 for i, intern_output in enumerate(intern_outputs):
