@@ -1,10 +1,15 @@
+'''LeNet in PyTorch.'''
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 class LeNet5_Cifar10(nn.Module):
 
     def __init__(self, n_classes):
         super(LeNet5_Cifar10, self).__init__()
         
         self.feature_extractor = nn.Sequential(            
-            nn.Conv2d(in_channels=2, out_channels=6, kernel_size=5, stride=1),
+            nn.Conv2d(in_channels=3, out_channels=6, kernel_size=5, stride=1),
             nn.BatchNorm2d(6),
             nn.ReLU(),
             #nn.Tanh(),

@@ -5,7 +5,7 @@ import torch.nn.functional as F
 class LeNet_Mnist(nn.Module):
     def __init__(self):
         super(LeNet_Mnist, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
+        self.conv1 = nn.Conv2d(1, 6, 5)
         self.bn1 = nn.BatchNorm2d(6)
         self.conv2 = nn.Conv2d(6, 16, 5)
         self.bn2 = nn.BatchNorm2d(16)
