@@ -111,7 +111,7 @@ elif args.model_name == "lenet":
     if args.dataset == "mnist":
         net = LeNet5_Mnist()
     else:
-        net = LeNet5_Cifar10()
+        net = LeNet5()
 else:
     net = VGG('VGG19')
 # net = PreActResNet18()
