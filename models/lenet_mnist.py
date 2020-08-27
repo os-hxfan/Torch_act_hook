@@ -1,3 +1,8 @@
+'''LeNet in PyTorch.'''
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 class LeNet5_Mnist(nn.Module):
 
     def __init__(self, n_classes):
