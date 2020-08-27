@@ -103,7 +103,10 @@ else:
 print('==> Building model..')
 # net = VGG('VGG19')
 if args.model_name == "resnet":
-    net = ResNet18()
+    if args.dataset == "mnist":
+        net = ResNet18_Mnist()
+    else:
+        net = ResNet18()
 else:
     net = VGG('VGG19')
 # net = PreActResNet18()
