@@ -84,9 +84,9 @@ elif args.dataset == "mnist":
                                  (0.1307,), (0.3081,))
                              ])
 
-    trainset =  torchvision.datasets.MNIST('/mnist/', train=True, download=True,
+    trainset =  torchvision.datasets.MNIST('./data/', train=True, download=True,
                                 transform=data_transform)
-    testset = torchvision.datasets.MNIST('/mnist/', train=False, download=True,
+    testset = torchvision.datasets.MNIST('./data/', train=False, download=True,
                                 transform=data_transform)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=train_batch_size, shuffle=True, num_workers=2)
@@ -229,14 +229,19 @@ with torch.no_grad():
         loss = criterion(outputs, targets)
         _, predicted = outputs.max(1)
         cur_example += 1
-        if cur_example > args.num_example:
-            break
+        #print ("current example:", cur_example)
+        #if cur_example > args.num_example:
+        #    break
 
 # Drawing the distribution
 for i, intern_output in enumerate(intern_outputs):
+    stat_features = intern_output.out_features.view(-1)
     print ("No.", i, " ", intern_output.out_features.shape)
+    print ("Numpy No.", i, " ", intern_output.out_features.cpu().data.numpy().shape)
+    print ("No.", i, " ", stat_features.shape)
+    print ("Numpy No.", i, " ", stat_features.cpu().data.numpy().shape)
     #ploting the distribution
-    writer.add_histogram("conv%d" % (i), intern_output.out_features.cpu().data.numpy(), bins='auto')
+    writer.add_histogram("conv%d" % (i), intern_output.out_features.view(-1).cpu().data.numpy(), bins='tensorflow')
 
 
 
