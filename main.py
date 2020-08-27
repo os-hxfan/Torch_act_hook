@@ -27,7 +27,7 @@ parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true',
                     help='resume from checkpoint')
 parser.add_argument("--gpus", default="0", type=str, required=False, help="GPUs id, separated by comma withougt space, for example: 0,1,2")
-parser.add_argument("--model_name", default="resnet", type=str, required=True, choices=["resnet", "vgg"], help="choose from [resnet, vgg]")
+parser.add_argument("--model_name", default="resnet", type=str, required=True, choices=["resnet", "vgg", "lenet"], help="choose from [resnet, vggm, lenet]")
 parser.add_argument("--dataset", default="cifar10", type=str, required=True, choices=["cifar10", "mnist"], help="choose from [cifar10, mnist]")
 parser.add_argument('--num_example', default=10, type=int, help='The number of examples for collecting intermedia results')
 parser.add_argument("--ckpt_dir", default=None, type=str, help="The path to the load checkpoint, start with ./checkpoint")
@@ -107,6 +107,11 @@ if args.model_name == "resnet":
         net = ResNet18_Mnist()
     else:
         net = ResNet18()
+elif args.model_name == "lenet":
+    if args.dataset == "mnist":
+        net = LeNet5_Mnist()
+    else:
+        net = LeNet5_Cifar10()
 else:
     net = VGG('VGG19')
 # net = PreActResNet18()
