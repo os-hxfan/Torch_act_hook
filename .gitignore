@@ -4,3 +4,4 @@ data/
 models/__pycache__/
 tensorboard/
 *.txt
+events.out.tfevents*

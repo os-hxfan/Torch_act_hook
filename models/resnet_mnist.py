@@ -11,11 +11,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class BasicBlock(nn.Module):
+class BasicBlock_Mnist(nn.Module):
     expansion = 1
 
     def __init__(self, in_planes, planes, stride=1):
-        super(BasicBlock, self).__init__()
+        super(BasicBlock_Mnist, self).__init__()
         self.conv1 = nn.Conv2d(
             in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
@@ -39,11 +39,11 @@ class BasicBlock(nn.Module):
         return out
 
 
-class Bottleneck(nn.Module):
+class Bottleneck_Mnist(nn.Module):
     expansion = 4
 
     def __init__(self, in_planes, planes, stride=1):
-        super(Bottleneck, self).__init__()
+        super(Bottleneck_Mnist, self).__init__()
         self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3,
@@ -105,4 +105,4 @@ class ResNet_Mnist(nn.Module):
 
 
 def ResNet18_Mnist():
-    return ResNet_Mnist(BasicBlock, [2, 2, 2, 2])
+    return ResNet_Mnist(BasicBlock_Mnist, [2, 2, 2, 2])
