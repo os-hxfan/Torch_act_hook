@@ -28,7 +28,7 @@ parser.add_argument('--resume', '-r', action='store_true',
                     help='resume from checkpoint')
 parser.add_argument("--gpus", default="0", type=str, required=False, help="GPUs id, separated by comma withougt space, for example: 0,1,2")
 parser.add_argument("--model_name", default="resnet", type=str, required=True, choices=["resnet", "vgg", "lenet"], help="choose from [resnet, vggm, lenet]")
-parser.add_argument("--dataset", default="cifar10", type=str, required=True, choices=["cifar10", "mnist"], help="choose from [cifar10, mnist]")
+parser.add_argument("--dataset", default="cifar10", type=str, required=True, choices=["cifar10", "mnist", "svhn"], help="choose from [cifar10, mnist, svhn]")
 parser.add_argument('--num_example', default=10, type=int, help='The number of examples for collecting intermedia results')
 parser.add_argument("--ckpt_dir", default=None, type=str, help="The path to the load checkpoint, start with ./checkpoint")
 parser.add_argument("--save_dir", default=None, type=str, help="The path to the save checkpoint, start with ./checkpoint")
@@ -89,6 +89,32 @@ elif args.dataset == "mnist":
                                 transform=data_transform)
     testset = torchvision.datasets.MNIST('./data/', train=False, download=True,
                                 transform=data_transform)
+    trainloader = torch.utils.data.DataLoader(
+        trainset, batch_size=train_batch_size, shuffle=True, num_workers=2)
+    testloader = torch.utils.data.DataLoader(
+        testset, batch_size=test_batch_size, shuffle=False, num_workers=2)
+
+    stat_loader = torch.utils.data.DataLoader(
+        testset, batch_size=1, shuffle=False, num_workers=2)
+elif args.dataset == "svhn":
+    SVHN_MEAN = [0.4377, 0.4438, 0.4728]
+    SVHN_STD = [0.1980, 0.2010, 0.1970]
+    train_transform = torchvision.transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(SVHN_MEAN, SVHN_STD),
+        ])
+
+    valid_transform = torchvision.transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(SVHN_MEAN, SVHN_STD),
+        ])
+
+    trainset =  torchvision.datasets.SVHN('./data/', train=True, download=True,
+                                transform=train_transform)
+    testset = torchvision.datasets.SVHN('./data/', train=False, download=True,
+                                transform=valid_transform)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=train_batch_size, shuffle=True, num_workers=2)
     testloader = torch.utils.data.DataLoader(
