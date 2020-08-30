@@ -109,9 +109,9 @@ if args.model_name == "resnet":
         net = ResNet18()
 elif args.model_name == "lenet":
     if args.dataset == "mnist":
-        net = LeNet5_Mnist(10)
+        net = LeNet_Mnist()
     else:
-        net = LeNet5()
+        net = LeNet()
 else:
     net = VGG('VGG19')
 # net = PreActResNet18()
@@ -232,11 +232,14 @@ net, intern_outputs = Stat_Collector.insert_hook(net, target_module_list)
 cur_example = 0
 with torch.no_grad():
     for batch_idx, (inputs, targets) in enumerate(stat_loader):
-        inputs, targets = inputs.to(device), targets.to(device)
-        outputs = net(inputs)
-        loss = criterion(outputs, targets)
-        _, predicted = outputs.max(1)
         cur_example += 1
+        if cur_example > 20:
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = net(inputs)
+            loss = criterion(outputs, targets)
+            _, predicted = outputs.max(1)
+            #cur_example += 1
+            break 
         #print ("current example:", cur_example)
         #if cur_example > args.num_example:
         #    break
