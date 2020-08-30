@@ -79,6 +79,7 @@ if args.dataset == "cifar10":
             'dog', 'frog', 'horse', 'ship', 'truck')
 elif args.dataset == "mnist":
     data_transform = torchvision.transforms.Compose([
+                               transforms.Resize((32, 32)),
                                torchvision.transforms.ToTensor(),
                                torchvision.transforms.Normalize(
                                  (0.1307,), (0.3081,))
