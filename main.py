@@ -30,6 +30,7 @@ parser.add_argument("--gpus", default="0", type=str, required=False, help="GPUs 
 parser.add_argument("--model_name", default="resnet", type=str, required=True, choices=["resnet", "vgg", "lenet"], help="choose from [resnet, vggm, lenet]")
 parser.add_argument("--dataset", default="cifar10", type=str, required=True, choices=["cifar10", "mnist", "svhn"], help="choose from [cifar10, mnist, svhn]")
 parser.add_argument('--num_example', default=10, type=int, help='The number of examples for collecting intermedia results')
+parser.add_argument('--epoch', default=350, type=int, help='The number of epoch for training')
 parser.add_argument("--ckpt_dir", default=None, type=str, help="The path to the load checkpoint, start with ./checkpoint")
 parser.add_argument("--save_dir", default=None, type=str, help="The path to the save checkpoint, start with ./checkpoint")
 args = parser.parse_args()
@@ -247,7 +248,7 @@ def test(epoch):
         best_acc = acc
 
 if not args.resume:
-    for epoch in range(start_epoch, start_epoch+350):
+    for epoch in range(start_epoch, start_epoch+args.epoch):
         train(epoch)
         test(epoch)
         scheduler.step()
