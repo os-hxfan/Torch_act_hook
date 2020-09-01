@@ -74,7 +74,7 @@ if args.dataset == "cifar10":
         testset, batch_size=test_batch_size, shuffle=False, num_workers=2)
 
     stat_loader = torch.utils.data.DataLoader(
-        testset, batch_size=1, shuffle=False, num_workers=2)
+        testset, batch_size=args.num_example, shuffle=False, num_workers=2)
 
     classes = ('plane', 'car', 'bird', 'cat', 'deer',
             'dog', 'frog', 'horse', 'ship', 'truck')
@@ -96,7 +96,7 @@ elif args.dataset == "mnist":
         testset, batch_size=test_batch_size, shuffle=False, num_workers=2)
 
     stat_loader = torch.utils.data.DataLoader(
-        testset, batch_size=1, shuffle=False, num_workers=2)
+        testset, batch_size=args.num_example, shuffle=False, num_workers=2)
 elif args.dataset == "svhn":
     SVHN_MEAN = [0.4377, 0.4438, 0.4728]
     SVHN_STD = [0.1980, 0.2010, 0.1970]
@@ -112,9 +112,9 @@ elif args.dataset == "svhn":
         transforms.Normalize(SVHN_MEAN, SVHN_STD),
         ])
 
-    trainset =  torchvision.datasets.SVHN('./data/', train=True, download=True,
+    trainset =  torchvision.datasets.SVHN('./data/', split="train", download=True,
                                 transform=train_transform)
-    testset = torchvision.datasets.SVHN('./data/', train=False, download=True,
+    testset = torchvision.datasets.SVHN('./data/', split="test", download=True,
                                 transform=valid_transform)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=train_batch_size, shuffle=True, num_workers=2)
@@ -122,7 +122,7 @@ elif args.dataset == "svhn":
         testset, batch_size=test_batch_size, shuffle=False, num_workers=2)
 
     stat_loader = torch.utils.data.DataLoader(
-        testset, batch_size=1, shuffle=False, num_workers=2)
+        testset, batch_size=args.num_example, shuffle=False, num_workers=2)
 else:
     raise NotImplementedError("The specifed dataset is not supported")
 
@@ -179,6 +179,9 @@ if args.dataset == "cifar10":
     optimizer = optim.SGD(net.parameters(), lr=args.lr,
                       momentum=0.9, weight_decay=5e-4)
 elif args.dataset == "mnist":
+    optimizer = optim.SGD(net.parameters(), lr=args.lr,
+                      momentum=0.9, weight_decay=5e-4)
+elif args.dataset == "svhn":
     optimizer = optim.SGD(net.parameters(), lr=args.lr,
                       momentum=0.9, weight_decay=5e-4)
 else:
