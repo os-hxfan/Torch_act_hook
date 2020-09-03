@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
+import PIL
 
 import torchvision
 import torchvision.transforms as transforms
@@ -133,17 +134,18 @@ elif args.dataset == 'att':
 
     data_transform = torchvision.transforms.Compose([
                                transforms.Resize((92, 112)),
+                               #transforms.Grayscale(),
                                torchvision.transforms.ToTensor()
                              ])
 
-    trainset =  torchvision.datasets.ImageFolder('./data/att/train', transform=data_transform)
+    trainset =  torchvision.datasets.ImageFolder('./data/att/train', transform=data_transform, loader=PIL.ImageOps.grayscale)
 
-    testset = torchvision.datasets.ImageFolder('./data/att/test', transform=data_transform)
+    testset = torchvision.datasets.ImageFolder('./data/att/test', transform=data_transform, loader=PIL.ImageOps.grayscale)
 
     trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=train_batch_size, shuffle=True, num_workers=2)
+        trainset, batch_size=5, shuffle=True, num_workers=2)
     testloader = torch.utils.data.DataLoader(
-        testset, batch_size=test_batch_size, shuffle=False, num_workers=2)
+        testset, batch_size=5, shuffle=False, num_workers=2)
 
     stat_loader = torch.utils.data.DataLoader(
         testset, batch_size=args.num_example, shuffle=False, num_workers=2)
@@ -163,7 +165,7 @@ elif args.model_name == "lenet":
     if args.dataset == "mnist":
         net = LeNet_Mnist()
     elif args.dataset == "att":
-        net = LeNet_att()
+        net = LeNet_ATT()
     else:
         net = LeNet()
 else:
@@ -210,6 +212,8 @@ elif args.dataset == "mnist":
 elif args.dataset == "svhn":
     optimizer = optim.SGD(net.parameters(), lr=args.lr,
                       momentum=0.9, weight_decay=5e-4)
+elif args.dataset == "att":
+    optimizer = optim.Adam(net.parameters(), lr=args.lr)
 else:
     raise NotImplementedError("The specifed optimizer is not supported")
 
