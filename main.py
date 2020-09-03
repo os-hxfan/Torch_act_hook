@@ -15,6 +15,8 @@ import argparse
 from models import *
 from utils import progress_bar
 
+from att_dataset import ATTDataset
+
 import Stat_Collector
 import logging
 
@@ -138,9 +140,11 @@ elif args.dataset == 'att':
                                torchvision.transforms.ToTensor()
                              ])
 
-    trainset =  torchvision.datasets.ImageFolder('./data/att/train', transform=data_transform, loader=PIL.ImageOps.grayscale)
+    trainset_folder =  torchvision.datasets.ImageFolder('./data/att/train')
+    trainset =  ATTDataset(imageFolderDataset=trainset_folder, transform = data_transform)
 
-    testset = torchvision.datasets.ImageFolder('./data/att/test', transform=data_transform, loader=PIL.ImageOps.grayscale)
+    testset_folder = torchvision.datasets.ImageFolder('./data/att/test')
+    testset = ATTDataset(imageFolderDataset=testset_folder, transform = data_transform)
 
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=5, shuffle=True, num_workers=2)
