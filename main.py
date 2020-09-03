@@ -28,7 +28,7 @@ parser.add_argument('--resume', '-r', action='store_true',
                     help='resume from checkpoint')
 parser.add_argument("--gpus", default="0", type=str, required=False, help="GPUs id, separated by comma withougt space, for example: 0,1,2")
 parser.add_argument("--model_name", default="resnet", type=str, required=True, choices=["resnet", "vgg", "lenet"], help="choose from [resnet, vggm, lenet]")
-parser.add_argument("--dataset", default="cifar10", type=str, required=True, choices=["cifar10", "mnist", "svhn"], help="choose from [cifar10, mnist, svhn]")
+parser.add_argument("--dataset", default="cifar10", type=str, required=True, choices=["cifar10", "mnist", "svhn", "att"], help="choose from [cifar10, mnist, svhn, att]")
 parser.add_argument('--num_example', default=10, type=int, help='The number of examples for collecting intermedia results')
 parser.add_argument('--epoch', default=350, type=int, help='The number of epoch for training')
 parser.add_argument("--ckpt_dir", default=None, type=str, help="The path to the load checkpoint, start with ./checkpoint")
@@ -123,6 +123,30 @@ elif args.dataset == "svhn":
 
     stat_loader = torch.utils.data.DataLoader(
         testset, batch_size=args.num_example, shuffle=False, num_workers=2)
+elif args.dataset == 'att':
+    # data_transform = torchvision.transforms.Compose([
+    #                            transforms.Resize((32, 32)),
+    #                            torchvision.transforms.ToTensor(),
+    #                            torchvision.transforms.Normalize(
+    #                              (0.1307,), (0.3081,))
+    #                          ])
+
+    data_transform = torchvision.transforms.Compose([
+                               transforms.Resize((92, 112)),
+                               torchvision.transforms.ToTensor()
+                             ])
+
+    trainset =  torchvision.datasets.ImageFolder('./data/att/train', transform=data_transform)
+
+    testset = torchvision.datasets.ImageFolder('./data/att/test', transform=data_transform)
+
+    trainloader = torch.utils.data.DataLoader(
+        trainset, batch_size=train_batch_size, shuffle=True, num_workers=2)
+    testloader = torch.utils.data.DataLoader(
+        testset, batch_size=test_batch_size, shuffle=False, num_workers=2)
+
+    stat_loader = torch.utils.data.DataLoader(
+        testset, batch_size=args.num_example, shuffle=False, num_workers=2)
 else:
     raise NotImplementedError("The specifed dataset is not supported")
 
@@ -138,6 +162,8 @@ if args.model_name == "resnet":
 elif args.model_name == "lenet":
     if args.dataset == "mnist":
         net = LeNet_Mnist()
+    elif args.dataset == "att":
+        net = LeNet_att()
     else:
         net = LeNet()
 else:

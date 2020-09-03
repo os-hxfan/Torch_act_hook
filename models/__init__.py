@@ -1,5 +1,6 @@
 from .lenet_cifar10 import *
 from .lenet_mnist import *
+from .lenet_att import *
 from .resnet_mnist import *
 from .vgg import *
 from .dpn import *
